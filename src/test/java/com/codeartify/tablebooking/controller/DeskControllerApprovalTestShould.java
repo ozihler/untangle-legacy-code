@@ -87,6 +87,34 @@ class DeskControllerApprovalTestShould {
     }
 
     @Test
+    void test16() {
+        DeskRepository deskRepository = mock(DeskRepository.class);
+        when(deskRepository.findByAvailable(false)).thenReturn(List.of());
+        var desk = new Desk();
+        desk.setAvailable(true);
+        when(deskRepository.findById(1L)).thenReturn(Optional.of(desk));
+        when(deskRepository.save(any())).thenThrow(HttpServerErrorException.InternalServerError.class);
+
+        DeskService deskService = new DeskService(deskRepository, null, null);
+
+        ReservationRepository reservationRepository = mock(ReservationRepository.class);
+        when(reservationRepository.findByReservedBy(any())).thenReturn(List.of());
+
+        DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
+        ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
+        var deskController = new DeskController(deskRepository, reservationRepository, reservationService, deskService);
+
+        ReservationRequest request = new ReservationRequest();
+        request.setDeskId(1L);
+        request.setTeamMembers(List.of("member1"));
+        request.setRole("user");
+
+        var response = deskController.reserveDesk(request);
+
+        assertEquals("<403 FORBIDDEN Forbidden,Insufficient privileges to get desk,[]>", response.toString());
+    }
+
+    @Test
     void test4() {
         DeskRepository deskRepository = mock(DeskRepository.class);
         when(deskRepository.findByAvailable(false)).thenReturn(List.of());
@@ -516,6 +544,34 @@ class DeskControllerApprovalTestShould {
 
         ReservationRequest request = new ReservationRequest();
         request.setSitCloseToTeam(true);
+        request.setTeamMembers(List.of("member1"));
+
+        var response = deskController.reserveDesk(request);
+
+        assertEquals("<409 CONFLICT Conflict,Desk is not available,[]>", response.toString());
+    }
+    @Test
+    void test17() {
+        DeskRepository deskRepository = mock(DeskRepository.class);
+        var desk = new Desk();
+        desk.setId(1L);
+        when(deskRepository.findByAvailable(true)).thenReturn(List.of(desk));
+
+        ReservationRepository reservationRepository = mock(ReservationRepository.class);
+
+        when(reservationRepository.findByReservedBy(any())).thenReturn(List.of( ));
+
+        RandomService randomService = new RandomService();
+        TeamDeskFinderService teamDeskFinderService = new TeamDeskFinderService(reservationRepository, randomService);
+        DeskService deskService = new DeskService(deskRepository, teamDeskFinderService, randomService);
+
+
+        DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
+        ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
+        var deskController = new DeskController(deskRepository, reservationRepository, reservationService, deskService);
+
+        ReservationRequest request = new ReservationRequest();
+        request.setSitCloseToTeam(false);
         request.setTeamMembers(List.of("member1"));
 
         var response = deskController.reserveDesk(request);
