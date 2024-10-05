@@ -366,4 +366,51 @@ class DeskControllerApprovalTestShould {
 
         assertEquals(ResponseEntity.status(HttpStatus.CONFLICT).body("There is already a reservation for the selected time."), response);
     }
+
+    @Test
+    void test12() {
+        DeskRepository deskRepository = mock(DeskRepository.class);
+        when(deskRepository.findByAvailable(false)).thenReturn(List.of());
+        var desk = new Desk();
+        desk.setId(2L);
+        desk.setAvailable(true);
+        desk.setType("desk-type");
+        desk.setNearWindow(true);
+        desk.setHasMonitor(true);
+        desk.setAdjustable(true);
+        desk.setReservedForManager(false);
+
+        when(deskRepository.findById(1L)).thenReturn(Optional.of(desk));
+
+        DeskService deskService = new DeskService(deskRepository, null, null);
+
+        ReservationRepository reservationRepository = mock(ReservationRepository.class);
+
+        var reservation = new Reservation();
+        reservation.setDeskId(1L);
+        reservation.setStartTime("08:00:00");
+        reservation.setEndTime("16:30:00");
+
+        when(reservationRepository.findByReservedBy(any())).thenReturn(List.of(reservation));
+
+        DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(null);
+        ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
+        var deskController = new DeskController(null, null, reservationService, deskService);
+
+        ReservationRequest request = new ReservationRequest();
+        request.setDeskId(1L);
+        request.setRole("user");
+        request.setTeamMembers(new ArrayList<>());
+        request.setTypePreference("desk-type");
+        request.setNearWindow(true);
+        request.setNeedsMonitor(true);
+        request.setNeedsAdjustableDesk(true);
+        request.setRecurring(false);
+        request.setStartTime("08:00:00");
+        request.setEndTime("16:30:00");
+
+        var response = deskController.reserveDesk(request);
+
+        assertEquals("<201 CREATED Created,Desk(id=2, type=desk-type, available=false, location=null, nearWindow=true, hasMonitor=true, isAdjustable=true, reservedForManager=false),[]>", response.toString());
+    }
 }

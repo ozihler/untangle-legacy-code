@@ -12,6 +12,7 @@ import lombok.*;
 @Setter
 @EqualsAndHashCode
 @Entity
+@ToString
 public class Desk {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
