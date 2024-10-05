@@ -7,6 +7,7 @@ import com.codeartify.tablebooking.repository.DeskRepository;
 import com.codeartify.tablebooking.repository.ReservationRepository;
 import com.codeartify.tablebooking.service.DeskReservationCheckerService;
 import com.codeartify.tablebooking.service.DeskService;
+import com.codeartify.tablebooking.service.RandomService;
 import com.codeartify.tablebooking.service.ReservationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -461,5 +462,29 @@ class DeskControllerApprovalTestShould {
         var response = deskController.reserveDesk(request);
 
         assertEquals("<409 CONFLICT Conflict,Team member member2 already has a reservation during the selected time.,[]>", response.toString());
+    }
+
+    @Test
+    void test14() {
+        DeskRepository deskRepository = mock(DeskRepository.class);
+        var desk = new Desk();
+        when(deskRepository.findByAvailable(true)).thenReturn(List.of(desk));
+
+        RandomService randomService = new RandomService();
+        DeskService deskService = new DeskService(deskRepository, null, randomService);
+
+        ReservationRepository reservationRepository = mock(ReservationRepository.class);
+
+
+        DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
+        ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
+        var deskController = new DeskController(null, null, reservationService, deskService);
+
+        ReservationRequest request = new ReservationRequest();
+
+
+        var response = deskController.reserveDesk(request);
+
+        assertEquals("<409 CONFLICT Conflict,Desk is not available,[]>", response.toString());
     }
 }
