@@ -9,6 +9,7 @@ import com.codeartify.tablebooking.service.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpServerErrorException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +28,7 @@ class DeskControllerApprovalTestShould {
         when(deskRepository.findByAvailable(false)).thenReturn(List.of());
         DeskService deskService = new DeskService(deskRepository, null, null);
 
-        var deskController = new DeskController(null, null, null, deskService);
+        var deskController = new DeskController(deskRepository, null, null, deskService);
 
         ReservationRequest request = new ReservationRequest();
 
@@ -47,8 +48,8 @@ class DeskControllerApprovalTestShould {
         ReservationRepository reservationRepository = mock(ReservationRepository.class);
         when(reservationRepository.findByReservedBy(any())).thenReturn(null);
 
-        ReservationService reservationService = new ReservationService(null, reservationRepository, null);
-        var deskController = new DeskController(null, null, reservationService, deskService);
+        ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, null);
+        var deskController = new DeskController(deskRepository, reservationRepository, reservationService, deskService);
 
         ReservationRequest request = new ReservationRequest();
         request.setDeskId(1L);
@@ -65,15 +66,16 @@ class DeskControllerApprovalTestShould {
         var desk = new Desk();
         desk.setAvailable(true);
         when(deskRepository.findById(1L)).thenReturn(Optional.of(desk));
+        when(deskRepository.save(any())).thenThrow(HttpServerErrorException.InternalServerError.class);
 
         DeskService deskService = new DeskService(deskRepository, null, null);
 
         ReservationRepository reservationRepository = mock(ReservationRepository.class);
         when(reservationRepository.findByReservedBy(any())).thenReturn(List.of());
 
-        DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(null);
-        ReservationService reservationService = new ReservationService(null, reservationRepository, deskReservationCheckerService);
-        var deskController = new DeskController(null, null, reservationService, deskService);
+        DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
+        ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
+        var deskController = new DeskController(deskRepository, reservationRepository, reservationService, deskService);
 
         ReservationRequest request = new ReservationRequest();
         request.setDeskId(1L);
@@ -81,7 +83,7 @@ class DeskControllerApprovalTestShould {
 
         var response = deskController.reserveDesk(request);
 
-        assertEquals(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while saving the reservation: Cannot invoke \"com.codeartify.tablebooking.repository.DeskRepository.save(Object)\" because \"this.deskRepository\" is null"), response);
+        assertEquals(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while saving the reservation: null"), response);
     }
 
     @Test
@@ -91,15 +93,16 @@ class DeskControllerApprovalTestShould {
         var desk = new Desk();
         desk.setAvailable(true);
         when(deskRepository.findById(1L)).thenReturn(Optional.of(desk));
+        when(deskRepository.save(any())).thenThrow(HttpServerErrorException.InternalServerError.class);
 
         DeskService deskService = new DeskService(deskRepository, null, null);
 
         ReservationRepository reservationRepository = mock(ReservationRepository.class);
         when(reservationRepository.findByReservedBy(any())).thenReturn(List.of());
 
-        DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(null);
-        ReservationService reservationService = new ReservationService(null, reservationRepository, deskReservationCheckerService);
-        var deskController = new DeskController(null, null, reservationService, deskService);
+        DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
+        ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
+        var deskController = new DeskController(deskRepository, reservationRepository, reservationService, deskService);
 
         ReservationRequest request = new ReservationRequest();
         request.setDeskId(1L);
@@ -108,7 +111,7 @@ class DeskControllerApprovalTestShould {
 
         var response = deskController.reserveDesk(request);
 
-        assertEquals(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while saving the reservation: Cannot invoke \"com.codeartify.tablebooking.repository.DeskRepository.save(Object)\" because \"this.deskRepository\" is null"), response);
+        assertEquals(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while saving the reservation: null"), response);
     }
 
     @Test
@@ -126,9 +129,9 @@ class DeskControllerApprovalTestShould {
         ReservationRepository reservationRepository = mock(ReservationRepository.class);
         when(reservationRepository.findByReservedBy(any())).thenReturn(List.of());
 
-        DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(null);
-        ReservationService reservationService = new ReservationService(null, reservationRepository, deskReservationCheckerService);
-        var deskController = new DeskController(null, null, reservationService, deskService);
+        DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
+        ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
+        var deskController = new DeskController(deskRepository, reservationRepository, reservationService, deskService);
 
         ReservationRequest request = new ReservationRequest();
         request.setDeskId(1L);
@@ -157,9 +160,9 @@ class DeskControllerApprovalTestShould {
         ReservationRepository reservationRepository = mock(ReservationRepository.class);
         when(reservationRepository.findByReservedBy(any())).thenReturn(List.of());
 
-        DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(null);
-        ReservationService reservationService = new ReservationService(null, reservationRepository, deskReservationCheckerService);
-        var deskController = new DeskController(null, null, reservationService, deskService);
+        DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
+        ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
+        var deskController = new DeskController(deskRepository, reservationRepository, reservationService, deskService);
 
         ReservationRequest request = new ReservationRequest();
         request.setDeskId(1L);
@@ -190,9 +193,9 @@ class DeskControllerApprovalTestShould {
         ReservationRepository reservationRepository = mock(ReservationRepository.class);
         when(reservationRepository.findByReservedBy(any())).thenReturn(List.of());
 
-        DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(null);
-        ReservationService reservationService = new ReservationService(null, reservationRepository, deskReservationCheckerService);
-        var deskController = new DeskController(null, null, reservationService, deskService);
+        DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
+        ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
+        var deskController = new DeskController(deskRepository, reservationRepository, reservationService, deskService);
 
         ReservationRequest request = new ReservationRequest();
         request.setDeskId(1L);
@@ -225,9 +228,9 @@ class DeskControllerApprovalTestShould {
         ReservationRepository reservationRepository = mock(ReservationRepository.class);
         when(reservationRepository.findByReservedBy(any())).thenReturn(List.of());
 
-        DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(null);
-        ReservationService reservationService = new ReservationService(null, reservationRepository, deskReservationCheckerService);
-        var deskController = new DeskController(null, null, reservationService, deskService);
+        DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
+        ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
+        var deskController = new DeskController(deskRepository, reservationRepository, reservationService, deskService);
 
         ReservationRequest request = new ReservationRequest();
         request.setDeskId(1L);
@@ -262,9 +265,9 @@ class DeskControllerApprovalTestShould {
         ReservationRepository reservationRepository = mock(ReservationRepository.class);
         when(reservationRepository.findByReservedBy(any())).thenReturn(List.of());
 
-        DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(null);
-        ReservationService reservationService = new ReservationService(null, reservationRepository, deskReservationCheckerService);
-        var deskController = new DeskController(null, null, reservationService, deskService);
+        DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
+        ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
+        var deskController = new DeskController(deskRepository, reservationRepository, reservationService, deskService);
 
         ReservationRequest request = new ReservationRequest();
         request.setDeskId(1L);
@@ -299,9 +302,9 @@ class DeskControllerApprovalTestShould {
         ReservationRepository reservationRepository = mock(ReservationRepository.class);
         when(reservationRepository.findByReservedBy(any())).thenReturn(List.of());
 
-        DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(null);
-        ReservationService reservationService = new ReservationService(null, reservationRepository, deskReservationCheckerService);
-        var deskController = new DeskController(null, null, reservationService, deskService);
+        DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
+        ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
+        var deskController = new DeskController(deskRepository, reservationRepository, reservationService, deskService);
 
         ReservationRequest request = new ReservationRequest();
         request.setDeskId(1L);
@@ -344,9 +347,9 @@ class DeskControllerApprovalTestShould {
 
         when(reservationRepository.findByReservedBy(any())).thenReturn(List.of(reservation));
 
-        DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(null);
-        ReservationService reservationService = new ReservationService(null, reservationRepository, deskReservationCheckerService);
-        var deskController = new DeskController(null, null, reservationService, deskService);
+        DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
+        ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
+        var deskController = new DeskController(deskRepository, reservationRepository, reservationService, deskService);
 
         ReservationRequest request = new ReservationRequest();
         request.setDeskId(1L);
@@ -391,9 +394,9 @@ class DeskControllerApprovalTestShould {
 
         when(reservationRepository.findByReservedBy(any())).thenReturn(List.of(reservation));
 
-        DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(null);
+        DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
         ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
-        var deskController = new DeskController(null, null, reservationService, deskService);
+        var deskController = new DeskController(deskRepository, reservationRepository, reservationService, deskService);
 
         ReservationRequest request = new ReservationRequest();
         request.setDeskId(1L);
@@ -441,7 +444,7 @@ class DeskControllerApprovalTestShould {
 
         DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
         ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
-        var deskController = new DeskController(null, null, reservationService, deskService);
+        var deskController = new DeskController(deskRepository, reservationRepository, reservationService, deskService);
 
         ReservationRequest request = new ReservationRequest();
         request.setDeskId(1L);
@@ -480,7 +483,7 @@ class DeskControllerApprovalTestShould {
 
         DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
         ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
-        var deskController = new DeskController(null, null, reservationService, deskService);
+        var deskController = new DeskController(deskRepository, reservationRepository, reservationService, deskService);
 
         ReservationRequest request = new ReservationRequest();
         request.setSitCloseToTeam(true);
