@@ -280,4 +280,42 @@ class DeskControllerApprovalTestShould {
 
         assertEquals(ResponseEntity.status(HttpStatus.FORBIDDEN).body("This desk is reserved for managers only."), response);
     }
+
+    @Test
+    void test10() {
+        DeskRepository deskRepository = mock(DeskRepository.class);
+        when(deskRepository.findByAvailable(false)).thenReturn(List.of());
+        var desk = new Desk();
+        desk.setAvailable(true);
+        desk.setType("desk-type");
+        desk.setNearWindow(true);
+        desk.setHasMonitor(true);
+        desk.setAdjustable(true);
+        desk.setReservedForManager(false);
+
+        when(deskRepository.findById(1L)).thenReturn(Optional.of(desk));
+
+        DeskService deskService = new DeskService(deskRepository, null, null);
+
+        ReservationRepository reservationRepository = mock(ReservationRepository.class);
+        when(reservationRepository.findByReservedBy(any())).thenReturn(List.of());
+
+        DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(null);
+        ReservationService reservationService = new ReservationService(null, reservationRepository, deskReservationCheckerService);
+        var deskController = new DeskController(null, null, reservationService, deskService);
+
+        ReservationRequest request = new ReservationRequest();
+        request.setDeskId(1L);
+        request.setRole("user");
+        request.setTeamMembers(new ArrayList<>());
+        request.setTypePreference("desk-type");
+        request.setNearWindow(true);
+        request.setNeedsMonitor(true);
+        request.setNeedsAdjustableDesk(true);
+        request.setRecurring(true);
+
+        var response = deskController.reserveDesk(request);
+
+        assertEquals(ResponseEntity.badRequest().body("Recurring reservations must have a recurrence pattern."), response);
+    }
 }
