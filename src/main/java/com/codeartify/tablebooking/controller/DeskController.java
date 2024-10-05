@@ -1,0 +1,88 @@
+package com.codeartify.tablebooking.controller;
+
+import com.codeartify.tablebooking.entity.Desk;
+import com.codeartify.tablebooking.entity.Reservation;
+import com.codeartify.tablebooking.repository.DeskRepository;
+import com.codeartify.tablebooking.repository.ReservationRepository;
+import com.codeartify.tablebooking.service.DeskService;
+import com.codeartify.tablebooking.service.ReservationService;
+import lombok.AllArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Optional;
+
+@AllArgsConstructor
+@RestController
+@RequestMapping("/api/desks")
+public class DeskController {
+    private final DeskRepository deskRepository;
+    private final ReservationRepository reservationRepository;
+    private final ReservationService reservationService;
+    private final DeskService deskService;
+
+    @PostMapping("/reserve")
+    public ResponseEntity<Object> reserveDesk(@RequestBody ReservationRequest request) {
+        var deskOpt = deskService.findDesk(request);
+
+        if (deskOpt.isPresent()) {
+            return reservationService.bookDesk(request, deskOpt);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+
+    }
+
+
+    @PostMapping("/reserve/team")
+    public String reserveForTeam(@RequestBody ReservationRequest request) {
+        if (!request.getRole().equals("manager")) {
+            return "Only managers can reserve desks for the entire team.";
+        } else {
+            List<Desk> availableDesks = deskRepository.findByAvailable(true);
+            if (availableDesks.size() < request.getTeamMembers().size()) {
+                return "Not enough desks available for the entire team.";
+            } else {
+                try {
+                    for (String teamMember : request.getTeamMembers()) {
+                        Desk desk = availableDesks.remove(0);
+                        Reservation reservation = new Reservation();
+                        reservation.setDeskId(desk.getId());
+                        reservation.setReservedBy(teamMember);
+                        reservation.setReservationType(request.getReservationType());
+                        reservation.setPurpose(request.getPurpose());
+                        reservationRepository.save(reservation);
+                        desk.setAvailable(false);
+                        deskRepository.save(desk);
+                    }
+                } catch (Exception e) {
+                    return "An error occurred while saving team reservations: " + e.getMessage();
+                }
+            }
+        }
+        return "Team reservation successful";
+    }
+
+    @DeleteMapping("/cancel/{reservationId}")
+    public String cancelReservation(@PathVariable Long reservationId) {
+        try {
+            Optional<Reservation> reservationOpt = reservationRepository.findById(reservationId);
+            if (reservationOpt.isPresent()) {
+                Reservation reservation = reservationOpt.get();
+                Optional<Desk> deskOpt = deskRepository.findById(reservation.getDeskId());
+                if (deskOpt.isPresent()) {
+                    Desk desk = deskOpt.get();
+                    desk.setAvailable(true);
+                    deskRepository.save(desk);
+                }
+                reservationRepository.deleteById(reservationId);
+                return "Reservation canceled successfully";
+            }
+        } catch (Exception e) {
+            return "An error occurred while canceling the reservation: " + e.getMessage();
+        }
+        return "Reservation not found";
+    }
+}
+
