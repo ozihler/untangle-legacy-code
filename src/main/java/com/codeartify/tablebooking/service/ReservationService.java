@@ -39,53 +39,61 @@ public class ReservationService {
             reservation.setStartTime(request.getStartTime());
             reservation.setEndTime(request.getEndTime());
 
-            if (!desk.isAvailable()) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("Desk is not available");
-            }
-            if (!request.getRole().equals("manager") && teamMembers != null && !teamMembers.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Insufficient privileges to get desk");
-            }
-            if (request.getTypePreference() != null && !request.getTypePreference().equals(desk.getType())) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("Requested desk type is not available.");
-            }
-            if (request.isNearWindow() && !desk.isNearWindow()) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("Requested desk is not near a window.");
-            }
-            if (request.isNeedsMonitor() && !desk.isHasMonitor()) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("Requested desk does not have a monitor.");
-            }
-            if (request.isNeedsAdjustableDesk() && !desk.isAdjustable()) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("Requested desk is not adjustable.");
-            }
-            if (desk.isReservedForManager() && !request.getRole().equals("manager")) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("This desk is reserved for managers only.");
-            }
-            if (request.isRecurring() && (request.getRecurrencePattern() == null || request.getRecurrencePattern().isEmpty())) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Recurring reservations must have a recurrence pattern.");
-            }
-            var deskReserved = deskReservationCheckerService.isDeskReserved(request, existingReservations, desk);
+            if (desk.isAvailable()) {
+                if (request.getRole().equals("manager") || teamMembers == null || teamMembers.isEmpty()) {
+                    if (request.getTypePreference() == null || request.getTypePreference().equals(desk.getType())) {
+                        if (!request.isNearWindow() || desk.isNearWindow()) {
+                            if (!request.isNeedsMonitor() || desk.isHasMonitor()) {
+                                if (!request.isNeedsAdjustableDesk() || desk.isAdjustable()) {
+                                    if (!desk.isReservedForManager() || request.getRole().equals("manager")) {
+                                        if (!request.isRecurring() || (request.getRecurrencePattern() != null && !request.getRecurrencePattern().isEmpty())) {
+                                            var deskReserved = deskReservationCheckerService.isDeskReserved(request, existingReservations, desk);
 
-            if (deskReserved == null) {
-                try {
-                    reservation.setDeskId(desk.getId());
+                                            if (deskReserved == null) {
+                                                try {
+                                                    reservation.setDeskId(desk.getId());
 
-                    var memberHasReservedResponse = deskReservationCheckerService.hasMemberReserved(request, teamMembers);
+                                                    var memberHasReservedResponse = deskReservationCheckerService.hasMemberReserved(request, teamMembers);
 
-                    if (memberHasReservedResponse == null) {
-                        this.reservationRepository.save(reservation);
-                        desk.setAvailable(false);
-                        this.deskRepository.save(desk);
+                                                    if (memberHasReservedResponse == null) {
+                                                        this.reservationRepository.save(reservation);
+                                                        desk.setAvailable(false);
+                                                        this.deskRepository.save(desk);
+                                                    } else {
+                                                        return memberHasReservedResponse;
+                                                    }
+
+                                                } catch (Exception e) {
+                                                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while saving the reservation: " + e.getMessage());
+                                                }
+                                            } else {
+                                                return deskReserved;
+                                            }
+                                            return ResponseEntity.status(HttpStatus.CREATED).body(desk);
+                                        } else {
+                                            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Recurring reservations must have a recurrence pattern.");
+                                        }
+                                    } else {
+                                        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("This desk is reserved for managers only.");
+                                    }
+                                } else {
+                                    return ResponseEntity.status(HttpStatus.CONFLICT).body("Requested desk is not adjustable.");
+                                }
+                            } else {
+                                return ResponseEntity.status(HttpStatus.CONFLICT).body("Requested desk does not have a monitor.");
+                            }
+                        } else {
+                            return ResponseEntity.status(HttpStatus.CONFLICT).body("Requested desk is not near a window.");
+                        }
                     } else {
-                        return memberHasReservedResponse;
+                        return ResponseEntity.status(HttpStatus.CONFLICT).body("Requested desk type is not available.");
                     }
-
-                } catch (Exception e) {
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while saving the reservation: " + e.getMessage());
+                } else {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Insufficient privileges to get desk");
                 }
             } else {
-                return deskReserved;
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("Desk is not available");
             }
-            return ResponseEntity.status(HttpStatus.CREATED).body(desk);
         }
     }
 
