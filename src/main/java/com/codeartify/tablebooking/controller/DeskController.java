@@ -1,7 +1,8 @@
 package com.codeartify.tablebooking.controller;
 
-import com.codeartify.tablebooking.entity.Desk;
-import com.codeartify.tablebooking.entity.Reservation;
+import com.codeartify.tablebooking.dto.ReservationRequest;
+import com.codeartify.tablebooking.model.Desk;
+import com.codeartify.tablebooking.model.Reservation;
 import com.codeartify.tablebooking.repository.DeskRepository;
 import com.codeartify.tablebooking.repository.ReservationRepository;
 import com.codeartify.tablebooking.service.DeskService;
@@ -46,7 +47,7 @@ public class DeskController {
             } else {
                 try {
                     for (String teamMember : request.getTeamMembers()) {
-                        Desk desk = availableDesks.remove(0);
+                        Desk desk = availableDesks.removeFirst();
                         Reservation reservation = new Reservation();
                         reservation.setDeskId(desk.getId());
                         reservation.setReservedBy(teamMember);

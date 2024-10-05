@@ -1,4 +1,4 @@
-package com.codeartify.tablebooking.entity;
+package com.codeartify.tablebooking.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

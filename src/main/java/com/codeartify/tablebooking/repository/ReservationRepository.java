@@ -1,6 +1,6 @@
 package com.codeartify.tablebooking.repository;
 
-import com.codeartify.tablebooking.entity.Reservation;
+import com.codeartify.tablebooking.model.Reservation;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

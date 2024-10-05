@@ -1,4 +1,4 @@
-package com.codeartify.tablebooking.controller;
+package com.codeartify.tablebooking.dto;
 
 import lombok.*;
 
@@ -24,5 +24,5 @@ public class ReservationRequest {
     private boolean needsAdjustableDesk;
     private String typePreference;
     private String startTime;
-    private String endTime; 
+    private String endTime;
 }

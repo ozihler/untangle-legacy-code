@@ -1,7 +1,7 @@
 package com.codeartify.tablebooking.service;
 
-import com.codeartify.tablebooking.controller.ReservationRequest;
-import com.codeartify.tablebooking.entity.Desk;
+import com.codeartify.tablebooking.dto.ReservationRequest;
+import com.codeartify.tablebooking.model.Desk;
 import com.codeartify.tablebooking.repository.DeskRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
