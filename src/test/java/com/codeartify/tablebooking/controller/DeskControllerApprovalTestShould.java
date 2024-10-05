@@ -512,7 +512,7 @@ class DeskControllerApprovalTestShould {
 
         DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
         ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
-        var deskController = new DeskController(null, null, reservationService, deskService);
+        var deskController = new DeskController(deskRepository, reservationRepository, reservationService, deskService);
 
         ReservationRequest request = new ReservationRequest();
         request.setSitCloseToTeam(true);
