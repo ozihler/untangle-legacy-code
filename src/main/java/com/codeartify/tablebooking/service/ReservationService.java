@@ -26,6 +26,7 @@ public class ReservationService {
         var teamMembers = request.getTeamMembers();
 
         if (deskOpt.isEmpty()) {
+            // can never happen under normal conditions
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Desk not found");
         } else {
             Desk desk = deskOpt.get();
