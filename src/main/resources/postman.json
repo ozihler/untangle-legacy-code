@@ -17,7 +17,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"deskId\": 1,\n  \"reservedBy\": \"user1\",\n  \"reservationType\": \"whole_day\",\n  \"teamMembers\": [\"teamMember1\", \"teamMember2\"],\n  \"role\": \"user\",\n  \"isRecurring\": false,\n  \"recurrencePattern\": \"\",\n  \"sitCloseToTeam\": true,\n  \"purpose\": \"focused work\",\n  \"nearWindow\": true,\n  \"needsMonitor\": true,\n  \"needsAdjustableDesk\": false,\n  \"typePreference\": \"standing\",\n  \"startTime\": \"09:00\",\n  \"endTime\": \"17:00\"\n}"
+          "raw": "{\n  \"deskId\": 1,\n  \"reservedBy\": \"user1\",\n  \"reservationType\": \"whole_day\",\n  \"teamMembers\": [\"teamMember1\", \"teamMember2\"],\n  \"role\": \"manager\",\n  \"isRecurring\": false,\n  \"recurrencePattern\": \"\",\n  \"sitCloseToTeam\": true,\n  \"purpose\": \"focused work\",\n  \"nearWindow\": true,\n  \"needsMonitor\": true,\n  \"needsAdjustableDesk\": false,\n  \"typePreference\": \"standing\",\n  \"startTime\": \"09:00\",\n  \"endTime\": \"17:00\"\n}"
         },
         "url": {
           "raw": "http://localhost:8080/api/desks/reserve",

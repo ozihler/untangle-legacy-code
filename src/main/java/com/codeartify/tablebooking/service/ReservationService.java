@@ -40,7 +40,7 @@ public class ReservationService {
             reservation.setEndTime(request.getEndTime());
 
             if (!desk.isAvailable()) {
-                return ResponseEntity.notFound().build();
+                return ResponseEntity.badRequest().body("Desk is not available");
             }
             if (!request.getRole().equals("manager") && teamMembers != null && !teamMembers.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Insufficient privileges to get desk");
@@ -80,7 +80,7 @@ public class ReservationService {
                     }
 
                 } catch (Exception e) {
-                    return ResponseEntity.badRequest().body("An error occurred while saving the reservation: " + e.getMessage());
+                    return ResponseEntity.internalServerError().body("An error occurred while saving the reservation: " + e.getMessage());
                 }
             } else {
                 return deskReserved;

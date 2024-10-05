@@ -1,14 +1,14 @@
 INSERT INTO DESK (TYPE, AVAILABLE, LOCATION, NEAR_WINDOW, HAS_MONITOR, IS_ADJUSTABLE, RESERVED_FOR_MANAGER)
-VALUES ('standing', true, 'Floor 1, Zone A', true, false, true, false);
+VALUES ('standing', true, 'Floor 1, Zone A', true, true, true, false);
 INSERT INTO DESK (TYPE, AVAILABLE, LOCATION, NEAR_WINDOW, HAS_MONITOR, IS_ADJUSTABLE, RESERVED_FOR_MANAGER)
 VALUES ('shared', true, 'Floor 2, Zone B', false, true, false, false);
 INSERT INTO DESK (TYPE, AVAILABLE, LOCATION, NEAR_WINDOW, HAS_MONITOR, IS_ADJUSTABLE, RESERVED_FOR_MANAGER)
 VALUES ('regular', true, 'Floor 1, Zone C', true, true, true, false);
 INSERT INTO DESK (TYPE, AVAILABLE, LOCATION, NEAR_WINDOW, HAS_MONITOR, IS_ADJUSTABLE, RESERVED_FOR_MANAGER)
-VALUES ('private_office', true, 'Floor 3, Zone D', false, true, true, true);
+VALUES ('private_office', true, 'Floor 3, Zone D', false, false, true, true);
 
 INSERT INTO RESERVATION (DESK_ID, RESERVED_BY, RESERVATION_TYPE, IS_RECURRING, RECURRENCE_PATTERN, PURPOSE, START_TIME,
                          END_TIME)
-VALUES (1, 'user1', 'whole_day', false, NULL, 'focused work', '09:00', '17:00');
+VALUES (2, 'user1', 'whole_day', false, NULL, 'focused work', '09:00', '17:00');
 INSERT INTO RESERVATION_TEAM_MEMBERS (RESERVATION_ID, TEAM_MEMBER)
 VALUES (1, 'teamMember1');
