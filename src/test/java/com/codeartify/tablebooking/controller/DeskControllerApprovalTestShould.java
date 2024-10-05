@@ -490,4 +490,33 @@ class DeskControllerApprovalTestShould {
 
         assertEquals("<409 CONFLICT Conflict,Desk is not available,[]>", response.toString());
     }
+
+    @Test
+    void test15() {
+        DeskRepository deskRepository = mock(DeskRepository.class);
+        var desk = new Desk();
+        desk.setId(1L);
+        when(deskRepository.findByAvailable(true)).thenReturn(List.of(desk));
+
+        ReservationRepository reservationRepository = mock(ReservationRepository.class);
+
+        when(reservationRepository.findByReservedBy(any())).thenReturn(List.of( ));
+
+        RandomService randomService = new RandomService();
+        TeamDeskFinderService teamDeskFinderService = new TeamDeskFinderService(reservationRepository, randomService);
+        DeskService deskService = new DeskService(deskRepository, teamDeskFinderService, randomService);
+
+
+        DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
+        ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
+        var deskController = new DeskController(null, null, reservationService, deskService);
+
+        ReservationRequest request = new ReservationRequest();
+        request.setSitCloseToTeam(true);
+        request.setTeamMembers(List.of("member1"));
+
+        var response = deskController.reserveDesk(request);
+
+        assertEquals("<409 CONFLICT Conflict,Desk is not available,[]>", response.toString());
+    }
 }
