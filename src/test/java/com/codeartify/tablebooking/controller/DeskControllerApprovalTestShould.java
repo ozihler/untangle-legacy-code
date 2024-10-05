@@ -207,4 +207,40 @@ class DeskControllerApprovalTestShould {
 
         assertEquals(ResponseEntity.status(HttpStatus.CONFLICT).body("Requested desk does not have a monitor."), response);
     }
+
+    @Test
+    void test8() {
+        DeskRepository deskRepository = mock(DeskRepository.class);
+        when(deskRepository.findByAvailable(false)).thenReturn(List.of());
+        var desk = new Desk();
+        desk.setAvailable(true);
+        desk.setType("desk-type");
+        desk.setNearWindow(true);
+        desk.setHasMonitor(true);
+        desk.setAdjustable(false);
+
+        when(deskRepository.findById(1L)).thenReturn(Optional.of(desk));
+
+        DeskService deskService = new DeskService(deskRepository, null, null);
+
+        ReservationRepository reservationRepository = mock(ReservationRepository.class);
+        when(reservationRepository.findByReservedBy(any())).thenReturn(List.of());
+
+        DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(null);
+        ReservationService reservationService = new ReservationService(null, reservationRepository, deskReservationCheckerService);
+        var deskController = new DeskController(null, null, reservationService, deskService);
+
+        ReservationRequest request = new ReservationRequest();
+        request.setDeskId(1L);
+        request.setRole("user");
+        request.setTeamMembers(new ArrayList<>());
+        request.setTypePreference("desk-type");
+        request.setNearWindow(true);
+        request.setNeedsMonitor(true);
+        request.setNeedsAdjustableDesk(true);
+
+        var response = deskController.reserveDesk(request);
+
+        assertEquals(ResponseEntity.status(HttpStatus.CONFLICT).body("Requested desk is not adjustable."), response);
+    }
 }
