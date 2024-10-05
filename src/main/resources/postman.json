@@ -1,0 +1,39 @@
+{
+  "info": {
+    "name": "Desk Reservation Request",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Reserve Desk",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"deskId\": 1,\n  \"reservedBy\": \"user1\",\n  \"reservationType\": \"whole_day\",\n  \"teamMembers\": [\"teamMember1\", \"teamMember2\"],\n  \"role\": \"user\",\n  \"isRecurring\": false,\n  \"recurrencePattern\": \"\",\n  \"sitCloseToTeam\": true,\n  \"purpose\": \"focused work\",\n  \"nearWindow\": true,\n  \"needsMonitor\": true,\n  \"needsAdjustableDesk\": false,\n  \"typePreference\": \"standing\",\n  \"startTime\": \"09:00\",\n  \"endTime\": \"17:00\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/desks/reserve",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "desks",
+            "reserve"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
