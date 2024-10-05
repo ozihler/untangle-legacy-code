@@ -5,10 +5,7 @@ import com.codeartify.tablebooking.model.Desk;
 import com.codeartify.tablebooking.model.Reservation;
 import com.codeartify.tablebooking.repository.DeskRepository;
 import com.codeartify.tablebooking.repository.ReservationRepository;
-import com.codeartify.tablebooking.service.DeskReservationCheckerService;
-import com.codeartify.tablebooking.service.DeskService;
-import com.codeartify.tablebooking.service.RandomService;
-import com.codeartify.tablebooking.service.ReservationService;
+import com.codeartify.tablebooking.service.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -468,12 +465,17 @@ class DeskControllerApprovalTestShould {
     void test14() {
         DeskRepository deskRepository = mock(DeskRepository.class);
         var desk = new Desk();
+        desk.setId(1L);
         when(deskRepository.findByAvailable(true)).thenReturn(List.of(desk));
 
-        RandomService randomService = new RandomService();
-        DeskService deskService = new DeskService(deskRepository, null, randomService);
-
         ReservationRepository reservationRepository = mock(ReservationRepository.class);
+        var reservation = new Reservation();
+        reservation.setDeskId(desk.getId());
+        when(reservationRepository.findByReservedBy(any())).thenReturn(List.of(reservation));
+
+        RandomService randomService = new RandomService();
+        TeamDeskFinderService teamDeskFinderService = new TeamDeskFinderService(reservationRepository, randomService);
+        DeskService deskService = new DeskService(deskRepository, teamDeskFinderService, randomService);
 
 
         DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
@@ -481,7 +483,8 @@ class DeskControllerApprovalTestShould {
         var deskController = new DeskController(null, null, reservationService, deskService);
 
         ReservationRequest request = new ReservationRequest();
-
+        request.setSitCloseToTeam(true);
+        request.setTeamMembers(List.of("member1"));
 
         var response = deskController.reserveDesk(request);
 
