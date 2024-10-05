@@ -12,9 +12,9 @@ import java.util.Optional;
 @Service
 @AllArgsConstructor
 public class DeskService {
-    private final DeskRepository deskRepository;
-    private final TeamDeskFinderService teamDeskFinderService;
-    private final RandomService randomService;
+    public final DeskRepository deskRepository;
+    public final TeamDeskFinderService teamDeskFinderService;
+    public final RandomService randomService;
 
     public Optional<Desk> findDesk(ReservationRequest request) {
         Optional<Desk> deskOpt;

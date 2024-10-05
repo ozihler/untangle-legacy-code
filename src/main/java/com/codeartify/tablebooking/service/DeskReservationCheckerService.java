@@ -14,7 +14,7 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 public class DeskReservationCheckerService {
-    private ReservationRepository reservationRepository;
+    public ReservationRepository reservationRepository;
 
     public ResponseEntity<Object> isDeskReserved(ReservationRequest request, List<Reservation> existingReservations, Desk desk) {
         for (Reservation existingReservation : existingReservations) {

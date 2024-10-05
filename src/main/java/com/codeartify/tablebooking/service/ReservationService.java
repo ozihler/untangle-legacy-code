@@ -17,9 +17,9 @@ import java.util.Optional;
 @Service
 public class ReservationService {
 
-    private final DeskRepository deskRepository;
-    private final ReservationRepository reservationRepository;
-    private final DeskReservationCheckerService deskReservationCheckerService;
+    public final DeskRepository deskRepository;
+    public final ReservationRepository reservationRepository;
+    public final DeskReservationCheckerService deskReservationCheckerService;
 
     public ResponseEntity<Object> bookDesk(ReservationRequest request, Optional<Desk> deskOpt) {
         List<Reservation> existingReservations = this.reservationRepository.findByReservedBy(request.getReservedBy());
