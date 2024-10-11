@@ -14,15 +14,12 @@ public class ReservationRequest {
     private String reservedBy;
     private String reservationType;
     private List<String> teamMembers;
-    private String role;
     private boolean isRecurring;
     private String recurrencePattern;
     private boolean sitCloseToTeam;
     private String purpose;
-    private boolean nearWindow;
     private boolean needsMonitor;
     private boolean needsAdjustableDesk;
-    private String typePreference;
     private String startTime;
     private String endTime;
 }

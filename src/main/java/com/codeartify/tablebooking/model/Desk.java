@@ -16,12 +16,9 @@ public class Desk {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String type; // Options: "standing", "shared", "regular", "private_office"
     private boolean available;
     private String location; // e.g., "Floor 1, Zone A"
-    private boolean nearWindow;
     private boolean hasMonitor;
     private boolean isAdjustable;
-    private boolean reservedForManager;
 
 }
