@@ -19,7 +19,10 @@ public class TeamDeskFinderService {
     public Optional<Desk> findDesk(ReservationRequest request, List<Desk> availableDesks) {
         Optional<Desk> deskOpt;
         var teamDeskIds = this.reservationRepository.findByReservedBy(request.getTeamMembers().stream().findFirst().orElse(null))
-                .stream().map(Reservation::getDeskId).toList();
+                .stream()
+                .map(Reservation::getDeskId)
+                .toList();
+
         var desksTeam = availableDesks.stream()
                 .filter(desk -> teamDeskIds.contains(desk.getId()))
                 .toList();

@@ -26,6 +26,7 @@ public class ReservationService {
         var teamMembers = request.getTeamMembers();
 
         if (deskOpt.isEmpty()) {
+            // not reachable from controller as deskOpt would already return not found inside controller
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Desk not found");
         } else {
             Desk desk = deskOpt.get();
