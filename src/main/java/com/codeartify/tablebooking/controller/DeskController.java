@@ -38,30 +38,28 @@ public class DeskController {
 
     @PostMapping("/reserve/team")
     public String reserveForTeam(@RequestBody ReservationRequest request) {
-        if (!request.getRole().equals("manager")) {
-            return "Only managers can reserve desks for the entire team.";
+
+        List<Desk> availableDesks = deskRepository.findByAvailable(true);
+        if (availableDesks.size() < request.getTeamMembers().size()) {
+            return "Not enough desks available for the entire team.";
         } else {
-            List<Desk> availableDesks = deskRepository.findByAvailable(true);
-            if (availableDesks.size() < request.getTeamMembers().size()) {
-                return "Not enough desks available for the entire team.";
-            } else {
-                try {
-                    for (String teamMember : request.getTeamMembers()) {
-                        Desk desk = availableDesks.removeFirst();
-                        Reservation reservation = new Reservation();
-                        reservation.setDeskId(desk.getId());
-                        reservation.setReservedBy(teamMember);
-                        reservation.setReservationType(request.getReservationType());
-                        reservation.setPurpose(request.getPurpose());
-                        reservationRepository.save(reservation);
-                        desk.setAvailable(false);
-                        deskRepository.save(desk);
-                    }
-                } catch (Exception e) {
-                    return "An error occurred while saving team reservations: " + e.getMessage();
+            try {
+                for (String teamMember : request.getTeamMembers()) {
+                    Desk desk = availableDesks.removeFirst();
+                    Reservation reservation = new Reservation();
+                    reservation.setDeskId(desk.getId());
+                    reservation.setReservedBy(teamMember);
+                    reservation.setReservationType(request.getReservationType());
+                    reservation.setPurpose(request.getPurpose());
+                    reservationRepository.save(reservation);
+                    desk.setAvailable(false);
+                    deskRepository.save(desk);
                 }
+            } catch (Exception e) {
+                return "An error occurred while saving team reservations: " + e.getMessage();
             }
         }
+
         return "Team reservation successful";
     }
 
