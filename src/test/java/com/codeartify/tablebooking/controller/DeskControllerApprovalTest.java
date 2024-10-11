@@ -370,5 +370,46 @@ class DeskControllerApprovalTest {
         assertEquals("<409 CONFLICT Conflict,Requested desk does not have a monitor.,[]>", response.toString());
     }
 
+    @Test
+    void test13() {
+        DeskRepository deskRepository = mock(DeskRepository.class);
+        var reservedDesk = new Desk();
+        reservedDesk.setId(2L);
+        reservedDesk.setAvailable(true);
+        reservedDesk.setHasMonitor(true);
+        reservedDesk.setAdjustable(true);
+        when(deskRepository.findByAvailable(true)).thenReturn(List.of(reservedDesk));
+
+        ReservationRepository reservationRepository = mock(ReservationRepository.class);
+        var teamMemberReservation = new Reservation();
+        var reservedBy = "team-member-name";
+        teamMemberReservation.setReservedBy(reservedBy);
+        teamMemberReservation.setDeskId(reservedDesk.getId());
+        teamMemberReservation.setStartTime("08:00:00");
+        teamMemberReservation.setEndTime("17:00:00");
+        when(reservationRepository.findByReservedBy(reservedBy)).thenReturn(List.of(teamMemberReservation));
+
+        RandomService randomService = new RandomService();
+        TeamDeskFinderService teamDeskFinderService = new TeamDeskFinderService(reservationRepository, randomService);
+        DeskService deskService = new DeskService(deskRepository, teamDeskFinderService, randomService);
+        DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
+        ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
+
+        var deskController = new DeskController(deskRepository, null, reservationService, deskService);
+
+        ReservationRequest request = new ReservationRequest();
+        request.setSitCloseToTeam(true);
+        request.setTeamMembers(List.of());
+        request.setReservedBy(reservedBy);
+        request.setRecurring(true);
+        request.setRecurrencePattern("every week");
+        request.setNeedsAdjustableDesk(true);
+        request.setNeedsMonitor(true);
+
+        var response = deskController.reserveDesk(request);
+
+        assertEquals("<201 CREATED Created,Desk(id=2, available=false, location=null, hasMonitor=true, isAdjustable=true),[]>", response.toString());
+    }
+
 
 }
