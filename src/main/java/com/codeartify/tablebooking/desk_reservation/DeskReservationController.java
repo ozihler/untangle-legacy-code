@@ -40,15 +40,7 @@ public class DeskReservationController {
         List<Reservation> existingReservations = reservationRepository.findByReservedBy(request.getReservedBy());
 
         Desk desk = deskOpt.get();
-        Reservation reservation = new Reservation();
-        reservation.setReservedBy(request.getReservedBy());
-        reservation.setReservationType(request.getReservationType());
-        reservation.setTeamMembers(teamMembers);
-        reservation.setRecurring(request.isRecurring());
-        reservation.setRecurrencePattern(request.getRecurrencePattern());
-        reservation.setPurpose(request.getPurpose());
-        reservation.setStartTime(request.getStartTime());
-        reservation.setEndTime(request.getEndTime());
+
 
         if (!desk.isAvailable()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Desk is not available");
@@ -76,7 +68,6 @@ public class DeskReservationController {
             return deskReserved;
         }
         try {
-            reservation.setDeskId(desk.getId());
 
             ResponseEntity<Object> memberHasReservedResponse = null;
             boolean finished = false;
@@ -97,6 +88,16 @@ public class DeskReservationController {
             }
 
             if (memberHasReservedResponse == null) {
+                Reservation reservation = new Reservation();
+                reservation.setReservedBy(request.getReservedBy());
+                reservation.setReservationType(request.getReservationType());
+                reservation.setTeamMembers(teamMembers);
+                reservation.setRecurring(request.isRecurring());
+                reservation.setRecurrencePattern(request.getRecurrencePattern());
+                reservation.setPurpose(request.getPurpose());
+                reservation.setStartTime(request.getStartTime());
+                reservation.setEndTime(request.getEndTime());
+                reservation.setDeskId(desk.getId());
                 reservationRepository.save(reservation);
                 desk.setAvailable(false);
                 deskRepository.save(desk);
