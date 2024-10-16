@@ -34,91 +34,81 @@ public class DeskReservationController {
 
         deskOpt = findDeskFor(deskId, wantsToSitCloseToTeam, teamMembers);
 
-        if (deskOpt.isPresent()) {
-            List<Reservation> existingReservations = reservationRepository.findByReservedBy(request.getReservedBy());
-
-            if (deskOpt.isEmpty()) {
-                // not reachable from controller as deskOpt would already return not found inside controller
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Desk not found");
-            } else {
-                Desk desk = deskOpt.get();
-                Reservation reservation = new Reservation();
-                reservation.setReservedBy(request.getReservedBy());
-                reservation.setReservationType(request.getReservationType());
-                reservation.setTeamMembers(teamMembers);
-                reservation.setRecurring(request.isRecurring());
-                reservation.setRecurrencePattern(request.getRecurrencePattern());
-                reservation.setPurpose(request.getPurpose());
-                reservation.setStartTime(request.getStartTime());
-                reservation.setEndTime(request.getEndTime());
-
-                if (desk.isAvailable()) {
-                    if (!request.isNeedsMonitor() || desk.isHasMonitor()) {
-                        if (!request.isNeedsAdjustableDesk() || desk.isAdjustable()) {
-                            if (!request.isRecurring() || (request.getRecurrencePattern() != null && !request.getRecurrencePattern().isEmpty())) {
-                                ResponseEntity<Object> deskReserved = null;
-                                for (Reservation existingReservation : existingReservations) {
-                                    if (existingReservation.getDeskId().equals(desk.getId()) &&
-                                            existingReservation.getStartTime().equals(request.getStartTime()) &&
-                                            existingReservation.getEndTime().equals(request.getEndTime())) {
-                                        deskReserved = ResponseEntity.status(HttpStatus.CONFLICT).body("There is already a reservation for the selected time.");
-                                        break;
-                                    }
-                                }
-                                if (deskReserved == null) {
-                                    try {
-                                        reservation.setDeskId(desk.getId());
-
-                                        ResponseEntity<Object> memberHasReservedResponse = null;
-                                        boolean finished = false;
-                                        if (teamMembers != null) {
-                                            for (String member : teamMembers) {
-                                                if (!member.equals(request.getReservedBy())) {
-                                                    for (Reservation existingReservation : reservationRepository.findByReservedBy(member)) {
-                                                        if (existingReservation.getStartTime().equals(request.getStartTime()) &&
-                                                                existingReservation.getEndTime().equals(request.getEndTime())) {
-                                                            memberHasReservedResponse = ResponseEntity.status(HttpStatus.CONFLICT).body("Team member " + member + " already has a reservation during the selected time.");
-                                                            finished = true;
-                                                            break;
-                                                        }
-                                                    }
-                                                    if (finished) break;
-                                                }
-                                            }
-                                        }
-
-                                        if (memberHasReservedResponse == null) {
-                                            reservationRepository.save(reservation);
-                                            desk.setAvailable(false);
-                                            deskRepository.save(desk);
-                                        } else {
-                                            return memberHasReservedResponse;
-                                        }
-
-                                    } catch (Exception e) {
-                                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while saving the reservation: " + e.getMessage());
-                                    }
-                                } else {
-                                    return deskReserved;
-                                }
-                                return ResponseEntity.status(HttpStatus.CREATED).body(desk);
-                            } else {
-                                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Recurring reservations must have a recurrence pattern.");
-                            }
-
-                        } else {
-                            return ResponseEntity.status(HttpStatus.CONFLICT).body("Requested desk is not adjustable.");
-                        }
-                    } else {
-                        return ResponseEntity.status(HttpStatus.CONFLICT).body("Requested desk does not have a monitor.");
-                    }
-                } else {
-                    return ResponseEntity.status(HttpStatus.CONFLICT).body("Desk is not available");
-                }
-            }
-        } else {
+        if (deskOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+        List<Reservation> existingReservations = reservationRepository.findByReservedBy(request.getReservedBy());
+
+        Desk desk = deskOpt.get();
+        Reservation reservation = new Reservation();
+        reservation.setReservedBy(request.getReservedBy());
+        reservation.setReservationType(request.getReservationType());
+        reservation.setTeamMembers(teamMembers);
+        reservation.setRecurring(request.isRecurring());
+        reservation.setRecurrencePattern(request.getRecurrencePattern());
+        reservation.setPurpose(request.getPurpose());
+        reservation.setStartTime(request.getStartTime());
+        reservation.setEndTime(request.getEndTime());
+
+        if (!desk.isAvailable()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Desk is not available");
+        }
+        if (request.isNeedsMonitor() && !desk.isHasMonitor()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Requested desk does not have a monitor.");
+        }
+        if (request.isNeedsAdjustableDesk() && !desk.isAdjustable()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Requested desk is not adjustable.");
+        }
+        if (request.isRecurring() && (request.getRecurrencePattern() == null || request.getRecurrencePattern().isEmpty())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Recurring reservations must have a recurrence pattern.");
+        }
+        ResponseEntity<Object> deskReserved = null;
+        for (Reservation existingReservation : existingReservations) {
+            if (existingReservation.getDeskId().equals(desk.getId()) &&
+                    existingReservation.getStartTime().equals(request.getStartTime()) &&
+                    existingReservation.getEndTime().equals(request.getEndTime())) {
+                deskReserved = ResponseEntity.status(HttpStatus.CONFLICT).body("There is already a reservation for the selected time.");
+                break;
+            }
+        }
+
+        if (deskReserved != null) {
+            return deskReserved;
+        }
+        try {
+            reservation.setDeskId(desk.getId());
+
+            ResponseEntity<Object> memberHasReservedResponse = null;
+            boolean finished = false;
+            if (teamMembers != null) {
+                for (String member : teamMembers) {
+                    if (!member.equals(request.getReservedBy())) {
+                        for (Reservation existingReservation : reservationRepository.findByReservedBy(member)) {
+                            if (existingReservation.getStartTime().equals(request.getStartTime()) &&
+                                    existingReservation.getEndTime().equals(request.getEndTime())) {
+                                memberHasReservedResponse = ResponseEntity.status(HttpStatus.CONFLICT).body("Team member " + member + " already has a reservation during the selected time.");
+                                finished = true;
+                                break;
+                            }
+                        }
+                        if (finished) break;
+                    }
+                }
+            }
+
+            if (memberHasReservedResponse == null) {
+                reservationRepository.save(reservation);
+                desk.setAvailable(false);
+                deskRepository.save(desk);
+            } else {
+                return memberHasReservedResponse;
+            }
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while saving the reservation: " + e.getMessage());
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(desk);
+
     }
 
     private Optional<Desk> findDeskFor(Long deskId, boolean wantsToSitCloseToTeam, List<String> teamMembers) {
