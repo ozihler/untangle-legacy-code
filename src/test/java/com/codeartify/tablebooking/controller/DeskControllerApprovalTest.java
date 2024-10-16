@@ -56,7 +56,7 @@ class DeskControllerApprovalTest {
 
         ReservationRepository reservationRepository = mock(ReservationRepository.class);
         ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, null);
-        var deskController = new DeskController(deskRepository, null, reservationService, deskService);
+        var deskController = new DeskController(deskRepository, reservationRepository, reservationService, deskService);
 
         var response = deskController.reserveDesk(request);
 
