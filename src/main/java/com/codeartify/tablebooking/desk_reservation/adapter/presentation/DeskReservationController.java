@@ -1,11 +1,12 @@
-package com.codeartify.tablebooking.desk_reservation;
+package com.codeartify.tablebooking.desk_reservation.adapter.presentation;
 
-import com.codeartify.tablebooking.desk_reservation.domain.TeamMemberReservation;
+import com.codeartify.tablebooking.desk_reservation.adapter.data_access.ReservationRepository;
+import com.codeartify.tablebooking.desk_reservation.domain.AvailableDesks;
+import com.codeartify.tablebooking.desk_reservation.domain.Team;
 import com.codeartify.tablebooking.dto.ReservationRequest;
 import com.codeartify.tablebooking.model.Desk;
 import com.codeartify.tablebooking.model.Reservation;
 import com.codeartify.tablebooking.repository.DeskRepository;
-import com.codeartify.tablebooking.repository.ReservationRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,12 +19,14 @@ import java.util.Random;
 @RequestMapping("/api/desks")
 public class DeskReservationController {
     private final DeskRepository deskRepository;
-    private final ReservationRepository reservationRepository;
+    private final com.codeartify.tablebooking.repository.ReservationRepository reservationRepository;
     private final Random random = new Random();
+    private final ReservationRepository reservationRepository1;
 
-    public DeskReservationController(DeskRepository deskRepository, ReservationRepository reservationRepository) {
+    public DeskReservationController(DeskRepository deskRepository, com.codeartify.tablebooking.repository.ReservationRepository reservationRepository, ReservationRepository reservationRepository1) {
         this.deskRepository = deskRepository;
         this.reservationRepository = reservationRepository;
+        this.reservationRepository1 = reservationRepository1;
     }
 
     @PostMapping("/reserve")
@@ -126,33 +129,17 @@ public class DeskReservationController {
             return Optional.of(availableDesks.get(random.nextInt(availableDesks.size())));
         }
 
-        var desksTeam = findDesksOfTeam(teamMembers, availableDesks);
+        var team = new Team(teamMembers);
+        var availableDesks1 = new AvailableDesks(availableDesks);
 
-        if (!desksTeam.isEmpty()) {
-            return Optional.of(desksTeam.get(random.nextInt(desksTeam.size())));
+        var desksOfTeam = reservationRepository1.findDesksOfTeam(team, availableDesks1);
+
+        if (!desksOfTeam.isEmpty()) {
+            return Optional.of(desksOfTeam.get(random.nextInt(desksOfTeam.size())));
         } else {
             return Optional.of(availableDesks.get(random.nextInt(availableDesks.size())));
         }
     }
 
-    private List<Desk> findDesksOfTeam(List<String> teamMembers, List<Desk> availableDesks) {
-        var teamDeskIds = findTeamDeskIdsFor(teamMembers);
-
-        return findTeamDesks(availableDesks, teamDeskIds);
-    }
-
-    private List<Long> findTeamDeskIdsFor(List<String> teamMembers) {
-        var reservationsOfTeamMember = reservationRepository.findByReservedBy(teamMembers.stream().findFirst().orElse(null));
-
-        var teamMemberReservation = new TeamMemberReservation(reservationsOfTeamMember);
-
-        return teamMemberReservation.deskIds();
-    }
-
-    private static List<Desk> findTeamDesks(List<Desk> availableDesks, List<Long> teamDeskIds) {
-        return availableDesks.stream()
-                .filter(desk -> teamDeskIds.contains(desk.getId()))
-                .toList();
-    }
 }
 

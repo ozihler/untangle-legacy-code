@@ -1,5 +1,6 @@
 package com.codeartify.tablebooking.desk_reservation;
 
+import com.codeartify.tablebooking.desk_reservation.adapter.presentation.DeskReservationController;
 import com.codeartify.tablebooking.dto.ReservationRequest;
 import com.codeartify.tablebooking.model.Desk;
 import com.codeartify.tablebooking.model.Reservation;
@@ -24,7 +25,7 @@ class DeskReservationControllerApprovalTest {
         DeskService deskService = new DeskService(deskRepository, null, null);
         ReservationRequest request = new ReservationRequest();
 
-        var deskController = new DeskReservationController(deskRepository, null);
+        var deskController = new DeskReservationController(deskRepository, null, new com.codeartify.tablebooking.desk_reservation.adapter.data_access.ReservationRepository(null));
 
         var response = deskController.reserveDesk(request);
 
@@ -38,7 +39,7 @@ class DeskReservationControllerApprovalTest {
         ReservationRequest request = new ReservationRequest();
         request.setDeskId(1L);
 
-        var deskController = new DeskReservationController(deskRepository, null);
+        var deskController = new DeskReservationController(deskRepository, null, new com.codeartify.tablebooking.desk_reservation.adapter.data_access.ReservationRepository(null));
 
         var response = deskController.reserveDesk(request);
 
@@ -56,7 +57,7 @@ class DeskReservationControllerApprovalTest {
 
         ReservationRepository reservationRepository = mock(ReservationRepository.class);
         ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, null);
-        var deskController = new DeskReservationController(deskRepository, reservationRepository);
+        var deskController = new DeskReservationController(deskRepository, reservationRepository, new com.codeartify.tablebooking.desk_reservation.adapter.data_access.ReservationRepository(reservationRepository));
 
         var response = deskController.reserveDesk(request);
 
@@ -73,7 +74,7 @@ class DeskReservationControllerApprovalTest {
         DeskService deskService = new DeskService(deskRepository, teamDeskFinderService, randomService);
         ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, null);
 
-        var deskController = new DeskReservationController(deskRepository, reservationRepository);
+        var deskController = new DeskReservationController(deskRepository, reservationRepository, new com.codeartify.tablebooking.desk_reservation.adapter.data_access.ReservationRepository(reservationRepository));
 
         ReservationRequest request = new ReservationRequest();
         request.setSitCloseToTeam(true);
@@ -103,7 +104,7 @@ class DeskReservationControllerApprovalTest {
         DeskService deskService = new DeskService(deskRepository, teamDeskFinderService, randomService);
         ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, null);
 
-        var deskController = new DeskReservationController(deskRepository, reservationRepository);
+        var deskController = new DeskReservationController(deskRepository, reservationRepository, new com.codeartify.tablebooking.desk_reservation.adapter.data_access.ReservationRepository(reservationRepository));
 
         ReservationRequest request = new ReservationRequest();
         request.setSitCloseToTeam(true);
@@ -137,7 +138,7 @@ class DeskReservationControllerApprovalTest {
         DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
         ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
 
-        var deskController = new DeskReservationController(deskRepository, reservationRepository);
+        var deskController = new DeskReservationController(deskRepository, reservationRepository, new com.codeartify.tablebooking.desk_reservation.adapter.data_access.ReservationRepository(reservationRepository));
 
         ReservationRequest request = new ReservationRequest();
         request.setSitCloseToTeam(true);
@@ -174,7 +175,7 @@ class DeskReservationControllerApprovalTest {
         DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
         ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
 
-        var deskController = new DeskReservationController(deskRepository, reservationRepository);
+        var deskController = new DeskReservationController(deskRepository, reservationRepository, new com.codeartify.tablebooking.desk_reservation.adapter.data_access.ReservationRepository(reservationRepository));
 
         ReservationRequest request = new ReservationRequest();
         request.setSitCloseToTeam(true);
@@ -212,7 +213,7 @@ class DeskReservationControllerApprovalTest {
         DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
         ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
 
-        var deskController = new DeskReservationController(deskRepository, reservationRepository);
+        var deskController = new DeskReservationController(deskRepository, reservationRepository, new com.codeartify.tablebooking.desk_reservation.adapter.data_access.ReservationRepository(reservationRepository));
 
         ReservationRequest request = new ReservationRequest();
         request.setSitCloseToTeam(true);
@@ -247,7 +248,7 @@ class DeskReservationControllerApprovalTest {
         DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
         ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
 
-        var deskController = new DeskReservationController(deskRepository, reservationRepository);
+        var deskController = new DeskReservationController(deskRepository, reservationRepository, new com.codeartify.tablebooking.desk_reservation.adapter.data_access.ReservationRepository(reservationRepository));
 
         ReservationRequest request = new ReservationRequest();
         request.setSitCloseToTeam(true);
@@ -283,7 +284,7 @@ class DeskReservationControllerApprovalTest {
         DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
         ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
 
-        var deskController = new DeskReservationController(deskRepository, reservationRepository);
+        var deskController = new DeskReservationController(deskRepository, reservationRepository, new com.codeartify.tablebooking.desk_reservation.adapter.data_access.ReservationRepository(reservationRepository));
 
         ReservationRequest request = new ReservationRequest();
         request.setSitCloseToTeam(true);
@@ -320,7 +321,7 @@ class DeskReservationControllerApprovalTest {
         DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
         ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
 
-        var deskController = new DeskReservationController(deskRepository, reservationRepository);
+        var deskController = new DeskReservationController(deskRepository, reservationRepository, new com.codeartify.tablebooking.desk_reservation.adapter.data_access.ReservationRepository(reservationRepository));
 
         ReservationRequest request = new ReservationRequest();
         request.setSitCloseToTeam(true);
@@ -357,7 +358,7 @@ class DeskReservationControllerApprovalTest {
         DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
         ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
 
-        var deskController = new DeskReservationController(deskRepository, reservationRepository);
+        var deskController = new DeskReservationController(deskRepository, reservationRepository, new com.codeartify.tablebooking.desk_reservation.adapter.data_access.ReservationRepository(reservationRepository));
 
         ReservationRequest request = new ReservationRequest();
         request.setSitCloseToTeam(true);
@@ -395,7 +396,7 @@ class DeskReservationControllerApprovalTest {
         DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
         ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
 
-        var deskController = new DeskReservationController(deskRepository, reservationRepository);
+        var deskController = new DeskReservationController(deskRepository, reservationRepository, new com.codeartify.tablebooking.desk_reservation.adapter.data_access.ReservationRepository(reservationRepository));
 
         ReservationRequest request = new ReservationRequest();
         request.setSitCloseToTeam(true);
