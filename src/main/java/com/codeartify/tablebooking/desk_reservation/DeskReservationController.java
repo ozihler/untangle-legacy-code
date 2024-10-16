@@ -1,5 +1,6 @@
 package com.codeartify.tablebooking.desk_reservation;
 
+import com.codeartify.tablebooking.desk_reservation.domain.TeamMemberReservation;
 import com.codeartify.tablebooking.dto.ReservationRequest;
 import com.codeartify.tablebooking.model.Desk;
 import com.codeartify.tablebooking.model.Reservation;
@@ -141,10 +142,11 @@ public class DeskReservationController {
     }
 
     private List<Long> findTeamDeskIdsFor(List<String> teamMembers) {
-        return reservationRepository.findByReservedBy(teamMembers.stream().findFirst().orElse(null))
-                .stream()
-                .map(Reservation::getDeskId)
-                .toList();
+        var reservationsOfTeamMember = reservationRepository.findByReservedBy(teamMembers.stream().findFirst().orElse(null));
+
+        var teamMemberReservation = new TeamMemberReservation(reservationsOfTeamMember);
+
+        return teamMemberReservation.deskIds();
     }
 
     private static List<Desk> findTeamDesks(List<Desk> availableDesks, List<Long> teamDeskIds) {
