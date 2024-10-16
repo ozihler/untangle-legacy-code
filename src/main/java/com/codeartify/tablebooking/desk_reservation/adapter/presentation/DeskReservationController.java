@@ -9,7 +9,10 @@ import com.codeartify.tablebooking.model.Reservation;
 import com.codeartify.tablebooking.repository.DeskRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Optional;
@@ -71,49 +74,51 @@ public class DeskReservationController {
         if (deskReserved != null) {
             return deskReserved;
         }
+
+        Optional<String> conflictingMember = findConflictWithOtherMember(teamMembers, request.getReservedBy(), request.getStartTime(), request.getEndTime());
+
+
+        if (conflictingMember.isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Team member " + conflictingMember.get() + " already has a reservation during the selected time.");
+        }
+
         try {
 
-            ResponseEntity<Object> memberHasReservedResponse = null;
-            boolean finished = false;
-            if (teamMembers != null) {
-                for (String member : teamMembers) {
-                    if (!member.equals(request.getReservedBy())) {
-                        for (Reservation existingReservation : reservationRepository.findByReservedBy(member)) {
-                            if (existingReservation.getStartTime().equals(request.getStartTime()) &&
-                                    existingReservation.getEndTime().equals(request.getEndTime())) {
-                                memberHasReservedResponse = ResponseEntity.status(HttpStatus.CONFLICT).body("Team member " + member + " already has a reservation during the selected time.");
-                                finished = true;
-                                break;
-                            }
-                        }
-                        if (finished) break;
-                    }
-                }
-            }
+            Reservation reservation = new Reservation();
+            reservation.setReservedBy(request.getReservedBy());
+            reservation.setReservationType(request.getReservationType());
+            reservation.setTeamMembers(teamMembers);
+            reservation.setRecurring(request.isRecurring());
+            reservation.setRecurrencePattern(request.getRecurrencePattern());
+            reservation.setPurpose(request.getPurpose());
+            reservation.setStartTime(request.getStartTime());
+            reservation.setEndTime(request.getEndTime());
+            reservation.setDeskId(desk.getId());
+            reservationRepository.save(reservation);
 
-            if (memberHasReservedResponse == null) {
-                Reservation reservation = new Reservation();
-                reservation.setReservedBy(request.getReservedBy());
-                reservation.setReservationType(request.getReservationType());
-                reservation.setTeamMembers(teamMembers);
-                reservation.setRecurring(request.isRecurring());
-                reservation.setRecurrencePattern(request.getRecurrencePattern());
-                reservation.setPurpose(request.getPurpose());
-                reservation.setStartTime(request.getStartTime());
-                reservation.setEndTime(request.getEndTime());
-                reservation.setDeskId(desk.getId());
-                reservationRepository.save(reservation);
-                desk.setAvailable(false);
-                deskRepository.save(desk);
-            } else {
-                return memberHasReservedResponse;
-            }
+            desk.setAvailable(false);
+            deskRepository.save(desk);
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while saving the reservation: " + e.getMessage());
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(desk);
 
+    }
+
+
+    private Optional<String> findConflictWithOtherMember(List<String> teamMembers, String reservedBy, String startTime, String endTime) {
+        if (teamMembers == null) {
+            return Optional.empty();
+        }
+        return teamMembers.stream()
+                .filter(member -> !member.equals(reservedBy))
+                .filter(member -> reservationRepository.findByReservedBy(member).stream().anyMatch(existingReservation -> matchingTimes(startTime, endTime, existingReservation))).findFirst();
+    }
+
+    private static boolean matchingTimes(String startTime, String endTime, Reservation existingReservation) {
+        return existingReservation.getStartTime().equals(startTime) &&
+                existingReservation.getEndTime().equals(endTime);
     }
 
     private Optional<Desk> findDeskFor(Long deskId, boolean wantsToSitCloseToTeam, List<String> teamMembers) {
