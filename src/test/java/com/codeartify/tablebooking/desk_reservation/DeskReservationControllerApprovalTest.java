@@ -1,4 +1,4 @@
-package com.codeartify.tablebooking.controller;
+package com.codeartify.tablebooking.desk_reservation;
 
 import com.codeartify.tablebooking.dto.ReservationRequest;
 import com.codeartify.tablebooking.model.Desk;
@@ -16,7 +16,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class DeskControllerApprovalTest {
+class DeskReservationControllerApprovalTest {
 
     @Test
     void test() {
@@ -24,7 +24,7 @@ class DeskControllerApprovalTest {
         DeskService deskService = new DeskService(deskRepository, null, null);
         ReservationRequest request = new ReservationRequest();
 
-        var deskController = new DeskController(deskRepository, null, null, deskService);
+        var deskController = new DeskReservationController(deskRepository, null);
 
         var response = deskController.reserveDesk(request);
 
@@ -38,7 +38,7 @@ class DeskControllerApprovalTest {
         ReservationRequest request = new ReservationRequest();
         request.setDeskId(1L);
 
-        var deskController = new DeskController(deskRepository, null, null, deskService);
+        var deskController = new DeskReservationController(deskRepository, null);
 
         var response = deskController.reserveDesk(request);
 
@@ -56,7 +56,7 @@ class DeskControllerApprovalTest {
 
         ReservationRepository reservationRepository = mock(ReservationRepository.class);
         ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, null);
-        var deskController = new DeskController(deskRepository, reservationRepository, reservationService, deskService);
+        var deskController = new DeskReservationController(deskRepository, reservationRepository);
 
         var response = deskController.reserveDesk(request);
 
@@ -73,7 +73,7 @@ class DeskControllerApprovalTest {
         DeskService deskService = new DeskService(deskRepository, teamDeskFinderService, randomService);
         ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, null);
 
-        var deskController = new DeskController(deskRepository, reservationRepository, reservationService, deskService);
+        var deskController = new DeskReservationController(deskRepository, reservationRepository);
 
         ReservationRequest request = new ReservationRequest();
         request.setSitCloseToTeam(true);
@@ -103,7 +103,7 @@ class DeskControllerApprovalTest {
         DeskService deskService = new DeskService(deskRepository, teamDeskFinderService, randomService);
         ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, null);
 
-        var deskController = new DeskController(deskRepository, reservationRepository, reservationService, deskService);
+        var deskController = new DeskReservationController(deskRepository, reservationRepository);
 
         ReservationRequest request = new ReservationRequest();
         request.setSitCloseToTeam(true);
@@ -137,7 +137,7 @@ class DeskControllerApprovalTest {
         DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
         ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
 
-        var deskController = new DeskController(deskRepository, reservationRepository, reservationService, deskService);
+        var deskController = new DeskReservationController(deskRepository, reservationRepository);
 
         ReservationRequest request = new ReservationRequest();
         request.setSitCloseToTeam(true);
@@ -174,7 +174,7 @@ class DeskControllerApprovalTest {
         DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
         ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
 
-        var deskController = new DeskController(deskRepository, reservationRepository, reservationService, deskService);
+        var deskController = new DeskReservationController(deskRepository, reservationRepository);
 
         ReservationRequest request = new ReservationRequest();
         request.setSitCloseToTeam(true);
@@ -212,7 +212,7 @@ class DeskControllerApprovalTest {
         DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
         ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
 
-        var deskController = new DeskController(deskRepository, reservationRepository, reservationService, deskService);
+        var deskController = new DeskReservationController(deskRepository, reservationRepository);
 
         ReservationRequest request = new ReservationRequest();
         request.setSitCloseToTeam(true);
@@ -247,7 +247,7 @@ class DeskControllerApprovalTest {
         DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
         ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
 
-        var deskController = new DeskController(deskRepository, reservationRepository, reservationService, deskService);
+        var deskController = new DeskReservationController(deskRepository, reservationRepository);
 
         ReservationRequest request = new ReservationRequest();
         request.setSitCloseToTeam(true);
@@ -283,7 +283,7 @@ class DeskControllerApprovalTest {
         DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
         ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
 
-        var deskController = new DeskController(deskRepository, reservationRepository, reservationService, deskService);
+        var deskController = new DeskReservationController(deskRepository, reservationRepository);
 
         ReservationRequest request = new ReservationRequest();
         request.setSitCloseToTeam(true);
@@ -320,7 +320,7 @@ class DeskControllerApprovalTest {
         DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
         ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
 
-        var deskController = new DeskController(deskRepository, reservationRepository, reservationService, deskService);
+        var deskController = new DeskReservationController(deskRepository, reservationRepository);
 
         ReservationRequest request = new ReservationRequest();
         request.setSitCloseToTeam(true);
@@ -357,7 +357,7 @@ class DeskControllerApprovalTest {
         DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
         ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
 
-        var deskController = new DeskController(deskRepository, reservationRepository, reservationService, deskService);
+        var deskController = new DeskReservationController(deskRepository, reservationRepository);
 
         ReservationRequest request = new ReservationRequest();
         request.setSitCloseToTeam(true);
@@ -395,7 +395,7 @@ class DeskControllerApprovalTest {
         DeskReservationCheckerService deskReservationCheckerService = new DeskReservationCheckerService(reservationRepository);
         ReservationService reservationService = new ReservationService(deskRepository, reservationRepository, deskReservationCheckerService);
 
-        var deskController = new DeskController(deskRepository, reservationRepository, reservationService, deskService);
+        var deskController = new DeskReservationController(deskRepository, reservationRepository);
 
         ReservationRequest request = new ReservationRequest();
         request.setSitCloseToTeam(true);
