@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 @AllArgsConstructor
 @RestController
@@ -23,17 +24,18 @@ public class DeskController {
     private final ReservationRepository reservationRepository;
     private final ReservationService reservationService;
     private final DeskService deskService;
+    private final Random random = new Random();
 
     @PostMapping("/reserve")
     public ResponseEntity<Object> reserveDesk(@RequestBody ReservationRequest request) {
         Optional<Desk> deskOpt1;
         if (request.getDeskId() == null) {
-            List<Desk> availDesks = deskService.deskRepository.findByAvailable(true);
+            List<Desk> availDesks = deskRepository.findByAvailable(true);
             if (!availDesks.isEmpty()) {
                 if (request.isSitCloseToTeam()) {
                     Optional<Desk> result;
                     Optional<Desk> deskOpt;
-                    var teamDeskIds = deskService.teamDeskFinderService.reservationRepository.findByReservedBy(request.getTeamMembers().stream().findFirst().orElse(null))
+                    var teamDeskIds = reservationRepository.findByReservedBy(request.getTeamMembers().stream().findFirst().orElse(null))
                             .stream()
                             .map(Reservation::getDeskId)
                             .toList();
@@ -42,25 +44,25 @@ public class DeskController {
                             .filter(desk -> teamDeskIds.contains(desk.getId()))
                             .toList();
                     if (!desksTeam.isEmpty()) {
-                        deskOpt = Optional.of(desksTeam.get(deskService.teamDeskFinderService.randomService.random.nextInt(desksTeam.size())));
+                        deskOpt = Optional.of(desksTeam.get(random.nextInt(desksTeam.size())));
                         result = deskOpt;
                     } else {
-                        result = Optional.of(availDesks.get(deskService.teamDeskFinderService.randomService.random.nextInt(availDesks.size())));
+                        result = Optional.of(availDesks.get(random.nextInt(availDesks.size())));
                     }
                     deskOpt1 = result;
                 } else {
-                    deskOpt1 = Optional.of(availDesks.get(deskService.randomService.random.nextInt(availDesks.size())));
+                    deskOpt1 = Optional.of(availDesks.get(random.nextInt(availDesks.size())));
                 }
             } else {
                 deskOpt1 = Optional.empty();
             }
         } else {
-            deskOpt1 = deskService.deskRepository.findById(request.getDeskId());
+            deskOpt1 = deskRepository.findById(request.getDeskId());
         }
         var deskOpt = deskOpt1;
 
         if (deskOpt.isPresent()) {
-            List<Reservation> existingReservations = reservationService.reservationRepository.findByReservedBy(request.getReservedBy());
+            List<Reservation> existingReservations = reservationRepository.findByReservedBy(request.getReservedBy());
             var teamMembers = request.getTeamMembers();
 
             if (deskOpt.isEmpty()) {
@@ -100,7 +102,7 @@ public class DeskController {
                                         if (teamMembers != null) {
                                             for (String member : teamMembers) {
                                                 if (!member.equals(request.getReservedBy())) {
-                                                    for (Reservation existingReservation : reservationService.deskReservationCheckerService.reservationRepository.findByReservedBy(member)) {
+                                                    for (Reservation existingReservation : reservationRepository.findByReservedBy(member)) {
                                                         if (existingReservation.getStartTime().equals(request.getStartTime()) &&
                                                                 existingReservation.getEndTime().equals(request.getEndTime())) {
                                                             memberHasReservedResponse = ResponseEntity.status(HttpStatus.CONFLICT).body("Team member " + member + " already has a reservation during the selected time.");
@@ -114,9 +116,9 @@ public class DeskController {
                                         }
 
                                         if (memberHasReservedResponse == null) {
-                                            reservationService.reservationRepository.save(reservation);
+                                            reservationRepository.save(reservation);
                                             desk.setAvailable(false);
-                                            reservationService.deskRepository.save(desk);
+                                            deskRepository.save(desk);
                                         } else {
                                             return memberHasReservedResponse;
                                         }
