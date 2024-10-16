@@ -27,42 +27,15 @@ public class DeskReservationController {
 
     @PostMapping("/reserve")
     public ResponseEntity<Object> reserveDesk(@RequestBody ReservationRequest request) {
-        Optional<Desk> deskOpt1;
-        if (request.getDeskId() == null) {
-            List<Desk> availDesks = deskRepository.findByAvailable(true);
-            if (!availDesks.isEmpty()) {
-                if (request.isSitCloseToTeam()) {
-                    Optional<Desk> result;
-                    Optional<Desk> deskOpt;
-                    var teamDeskIds = reservationRepository.findByReservedBy(request.getTeamMembers().stream().findFirst().orElse(null))
-                            .stream()
-                            .map(Reservation::getDeskId)
-                            .toList();
+        Optional<Desk> deskOpt;
+        var deskId = request.getDeskId();
+        var teamMembers = request.getTeamMembers();
+        var wantsToSitCloseToTeam = request.isSitCloseToTeam();
 
-                    var desksTeam = availDesks.stream()
-                            .filter(desk -> teamDeskIds.contains(desk.getId()))
-                            .toList();
-                    if (!desksTeam.isEmpty()) {
-                        deskOpt = Optional.of(desksTeam.get(random.nextInt(desksTeam.size())));
-                        result = deskOpt;
-                    } else {
-                        result = Optional.of(availDesks.get(random.nextInt(availDesks.size())));
-                    }
-                    deskOpt1 = result;
-                } else {
-                    deskOpt1 = Optional.of(availDesks.get(random.nextInt(availDesks.size())));
-                }
-            } else {
-                deskOpt1 = Optional.empty();
-            }
-        } else {
-            deskOpt1 = deskRepository.findById(request.getDeskId());
-        }
-        var deskOpt = deskOpt1;
+        deskOpt = findDeskFor(deskId, wantsToSitCloseToTeam, teamMembers);
 
         if (deskOpt.isPresent()) {
             List<Reservation> existingReservations = reservationRepository.findByReservedBy(request.getReservedBy());
-            var teamMembers = request.getTeamMembers();
 
             if (deskOpt.isEmpty()) {
                 // not reachable from controller as deskOpt would already return not found inside controller
@@ -146,6 +119,47 @@ public class DeskReservationController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    private Optional<Desk> findDeskFor(Long deskId, boolean wantsToSitCloseToTeam, List<String> teamMembers) {
+        if (deskId != null) {
+            return deskRepository.findById(deskId);
+        }
+        List<Desk> availableDesks = deskRepository.findByAvailable(true);
+        if (availableDesks.isEmpty()) {
+            return Optional.empty();
+        }
+
+        if (!wantsToSitCloseToTeam) {
+            return Optional.of(availableDesks.get(random.nextInt(availableDesks.size())));
+        }
+
+        var desksTeam = findDesksOfTeam(teamMembers, availableDesks);
+
+        if (!desksTeam.isEmpty()) {
+            return Optional.of(desksTeam.get(random.nextInt(desksTeam.size())));
+        } else {
+            return Optional.of(availableDesks.get(random.nextInt(availableDesks.size())));
+        }
+    }
+
+    private List<Desk> findDesksOfTeam(List<String> teamMembers, List<Desk> availableDesks) {
+        var teamDeskIds = findTeamDeskIdsFor(teamMembers);
+
+        return findTeamDesks(availableDesks, teamDeskIds);
+    }
+
+    private List<Long> findTeamDeskIdsFor(List<String> teamMembers) {
+        return reservationRepository.findByReservedBy(teamMembers.stream().findFirst().orElse(null))
+                .stream()
+                .map(Reservation::getDeskId)
+                .toList();
+    }
+
+    private static List<Desk> findTeamDesks(List<Desk> availableDesks, List<Long> teamDeskIds) {
+        return availableDesks.stream()
+                .filter(desk -> teamDeskIds.contains(desk.getId()))
+                .toList();
     }
 }
 
