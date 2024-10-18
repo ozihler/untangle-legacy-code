@@ -63,15 +63,6 @@ public class DeskController2 {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Desk not found");
             } else {
                 Desk desk = deskOpt.get();
-                Reservation reservation = new Reservation();
-                reservation.setReservedBy(request.getReservedBy());
-                reservation.setReservationType(request.getReservationType());
-                reservation.setTeamMembers(teamMembers);
-                reservation.setRecurring(request.isRecurring());
-                reservation.setRecurrencePattern(request.getRecurrencePattern());
-                reservation.setPurpose(request.getPurpose());
-                reservation.setStartTime(request.getStartTime());
-                reservation.setEndTime(request.getEndTime());
 
                 if (desk.isAvailable()) {
                     if (!request.isNeedsMonitor() || desk.isHasMonitor()) {
@@ -88,7 +79,6 @@ public class DeskController2 {
                                 }
                                 if (deskReserved == null) {
                                     try {
-                                        reservation.setDeskId(desk.getId());
 
                                         ResponseEntity<Object> memberHasReservedResponse = null;
                                         boolean finished = false;
@@ -109,6 +99,16 @@ public class DeskController2 {
                                         }
 
                                         if (memberHasReservedResponse == null) {
+                                            Reservation reservation = new Reservation();
+                                            reservation.setReservedBy(request.getReservedBy());
+                                            reservation.setReservationType(request.getReservationType());
+                                            reservation.setTeamMembers(teamMembers);
+                                            reservation.setRecurring(request.isRecurring());
+                                            reservation.setRecurrencePattern(request.getRecurrencePattern());
+                                            reservation.setPurpose(request.getPurpose());
+                                            reservation.setStartTime(request.getStartTime());
+                                            reservation.setEndTime(request.getEndTime());
+                                            reservation.setDeskId(desk.getId());
                                             reservationRepository.save(reservation);
                                             desk.setAvailable(false);
                                             deskRepository.save(desk);
