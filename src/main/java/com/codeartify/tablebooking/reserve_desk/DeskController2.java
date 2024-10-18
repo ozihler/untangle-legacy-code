@@ -5,6 +5,7 @@ import com.codeartify.tablebooking.model.Desk;
 import com.codeartify.tablebooking.model.Reservation;
 import com.codeartify.tablebooking.repository.DeskRepository;
 import com.codeartify.tablebooking.repository.ReservationRepository;
+import com.codeartify.tablebooking.reserve_desk.domain.AvailableDesks;
 import com.codeartify.tablebooking.service.DeskService;
 import com.codeartify.tablebooking.service.ReservationService;
 import lombok.AllArgsConstructor;
@@ -111,27 +112,31 @@ public class DeskController2 {
         if (request.getDeskId() != null) {
             return deskRepository.findById(request.getDeskId());
         }
+
         List<Desk> availDesks = deskRepository.findByAvailable(true);
-        if (availDesks.isEmpty()) {
+
+        var availableDesks = new AvailableDesks(availDesks);
+        if (availableDesks.nonAvailable()) {
             return Optional.empty();
         }
+
         if (!request.isSitCloseToTeam()) {
-            return Optional.of(availDesks.get(random.nextInt(availDesks.size())));
+            return availableDesks.getAnyAvailableDesk();
         }
+
         var teamDeskIds = reservationRepository.findByReservedBy(request.getTeamMembers().stream().findFirst().orElse(null))
                 .stream()
                 .map(Reservation::getDeskId)
                 .toList();
 
-        var desksTeam = availDesks.stream()
-                .filter(desk -> teamDeskIds.contains(desk.getId()))
-                .toList();
+        var desksTeam = availableDesks.getTeamDesks(teamDeskIds);
         if (!desksTeam.isEmpty()) {
             return Optional.of(desksTeam.get(random.nextInt(desksTeam.size())));
         } else {
-            return Optional.of(availDesks.get(random.nextInt(availDesks.size())));
+            return availableDesks.getAnyAvailableDesk();
         }
     }
+
 
 }
 
