@@ -26,13 +26,11 @@ public class DeskController2 {
 
     @PostMapping("/reserve")
     public ResponseEntity<Object> reserveDesk(@RequestBody ReservationRequest request) {
-        Optional<Desk> deskOpt1;
+        Optional<Desk> deskOpt;
         if (request.getDeskId() == null) {
             List<Desk> availDesks = deskRepository.findByAvailable(true);
             if (!availDesks.isEmpty()) {
                 if (request.isSitCloseToTeam()) {
-                    Optional<Desk> result;
-                    Optional<Desk> deskOpt;
                     var teamDeskIds = reservationRepository.findByReservedBy(request.getTeamMembers().stream().findFirst().orElse(null))
                             .stream()
                             .map(Reservation::getDeskId)
@@ -43,21 +41,18 @@ public class DeskController2 {
                             .toList();
                     if (!desksTeam.isEmpty()) {
                         deskOpt = Optional.of(desksTeam.get(random.nextInt(desksTeam.size())));
-                        result = deskOpt;
                     } else {
-                        result = Optional.of(availDesks.get(random.nextInt(availDesks.size())));
+                        deskOpt = Optional.of(availDesks.get(random.nextInt(availDesks.size())));
                     }
-                    deskOpt1 = result;
-                } else {
-                    deskOpt1 = Optional.of(availDesks.get(random.nextInt(availDesks.size())));
+                 } else {
+                    deskOpt = Optional.of(availDesks.get(random.nextInt(availDesks.size())));
                 }
             } else {
-                deskOpt1 = Optional.empty();
+                deskOpt = Optional.empty();
             }
         } else {
-            deskOpt1 = deskRepository.findById(request.getDeskId());
+            deskOpt = deskRepository.findById(request.getDeskId());
         }
-        var deskOpt = deskOpt1;
 
         if (deskOpt.isPresent()) {
             List<Reservation> existingReservations = reservationRepository.findByReservedBy(request.getReservedBy());
